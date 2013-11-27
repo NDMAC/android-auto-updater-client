@@ -7,5 +7,4 @@ This project allows to automatically update a running APK application using a pr
 
 ## HOW TO
 
-TODO...
-
+TODO
