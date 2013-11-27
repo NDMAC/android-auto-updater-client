@@ -47,8 +47,8 @@ public class SilentAutoUpdate extends AutoUpdateApk {
 	//		sau = new SilentAutoUpdate(getApplicationContext());	<-- and add this line too
 	//
 
-	SilentAutoUpdate(Context ctx) {
-		super(ctx);
+	SilentAutoUpdate(Context ctx, String apiURL) {
+		super(ctx, apiURL);
 	}
 
 	//

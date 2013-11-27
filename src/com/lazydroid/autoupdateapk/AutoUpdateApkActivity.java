@@ -32,7 +32,7 @@ public class AutoUpdateApkActivity extends Activity implements Observer {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.main);
 
-		aua = new AutoUpdateApk(getApplicationContext());	// <-- don't forget to instantiate
+		aua = new AutoUpdateApk(getApplicationContext(), AutoUpdateApk.PUBLIC_API_URL);	// <-- don't forget to instantiate
 
 		aua.addObserver(this);	// see the remark below, next to update() method
 	}
