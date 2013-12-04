@@ -23,6 +23,6 @@ where UPDATE_URL is your update server URL, eg.
 
 Updater configuration may be any time after its creation.
 
-`// auto update every day
+`// auto update every day  
 aua.setUpdateInterval(AutoUpdateApk.DAYS * 1);`
 
