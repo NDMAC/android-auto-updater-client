@@ -10,4 +10,19 @@ Fork of [lenik.terenin](https://code.google.com/u/lenik.terenin/)'s auto-update 
 
 ## HOW TO
 
-TODO
+### Start updater client
+
+The updater client typically starts during application initialization, simply by creating a new instance.
+
+`AutoUpdateApk aua = new AutoUpdateApk(getApplicationContext(), UPDATE_URL);`
+
+where UPDATE_URL is your update server URL, eg.  
+`public final static String UPDATE_URL = "http://mydomain.com/updater";`
+
+### Configuration
+
+Updater configuration may be any time after its creation.
+
+`// auto update every day
+aua.setUpdateInterval(AutoUpdateApk.DAYS * 1);`
+
