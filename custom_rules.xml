@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="imported">
+	<!-- The constants source filename. -->
+    <property name="file.build" value="TODO" />
+
+    <!-- Apk repository directory. -->
+    <property name="apk.repo.dir" value=".apk_repo" />
+
+    <!-- The path to the git executable. -->
+    <property name="git.path" value="/usr/bin/git" />
+
+    <!-- Determine if .git is available in the running directory. -->
+    <available file=".git" type="dir" property="git.present" />
+
+    <!-- Retrive the build version and update the constants source file. -->
+    <target name="-build-version" description="" if="git.present">
+        <exec executable="${git.path}" outputproperty="git.revision" failifexecutionfails="true" errorproperty="">
+            <arg value="rev-parse" />
+            <arg value="--verify" />
+            <arg value="HEAD" />
+        </exec>
+        <echo message="Repository version is ${git.revision}" />
+
+        <replace
+            file="${source.absolute.dir}${file.build}"
+            token="@build-token@"
+            value="${git.revision}"
+            failOnNoReplacements="true"
+            preserveLastModified="true"
+            summary="true" />
+    </target>
+
+    <!-- Revert the modified constants file to persist the replace tokens. -->
+    <target name="-revert" if="git.present">
+        <exec executable="${git.path}" outputproperty="git.revision" failifexecutionfails="true" errorproperty="">
+            <arg value="checkout" />
+            <arg value="${source.absolute.dir}${file.build}" />
+        </exec>
+    </target>
+
+	  <!-- Deploy debug APK. -->
+    <target name="-package-jar" unless="build.is.mode.release">
+    	<buildnumber/>
+        <move file="${out.dir}/classes.jar" tofile="${out.dir}/${ant.project.name}.jar" /> 
+    </target>
+
+    <!-- Run before -build to update the build file. -->
+    <target name="-pre-build">
+    </target>
+
+    <!-- Run after -compile to do any cleanup. -->
+    <target name="-post-compile">
+    </target>
+
+    <!-- Run after -build. -->
+    <target name="-post-build">
+      <antcall target="-package-jar" />
+    </target>
+</project>
