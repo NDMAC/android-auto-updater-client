@@ -79,14 +79,28 @@ public class AutoUpdateApk extends Observable {
 	 * @param ctx
 	 *            parent activity context
 	 * @param apiURL
-	 *            server API URL (http://www.auto-update-apk.com/ provides an
-	 *            existing server at {@link #PUBLIC_API_URL} )
+	 *            server API path may be relative to server (eg. /myapi/updater)
+	 *            or absolute, depending on server implementation : relative
+	 *            path and server is mandatory if server's implementation
+	 *            provides relative paths. (http://www.auto-update-apk.com/
+	 *            provides an existing server at {@link #PUBLIC_API_URL} )
+	 * @param server
+	 *            server name and port (eg. myserver.domain.com:8123 ). Should
+	 *            be null when using absolutes apiPath.
 	 */
-	public AutoUpdateApk(Context ctx, String apiURL) {
+	public AutoUpdateApk(Context ctx, String apiPath, String server) {
 		setupVariables(ctx);
-		this.apiURL = apiURL; 
+		this.server = server;
+		this.apiPath = apiPath;
 	}
 
+	public AutoUpdateApk(Context ctx, String apiURL) {
+		setupVariables(ctx);
+		this.server = null;;
+		this.apiPath = apiURL;
+	}
+
+	
 	// set icon for notification popup (default = application icon)
 	//
 	public static void setIcon(int icon) {
@@ -115,11 +129,11 @@ public class AutoUpdateApk extends Observable {
 	// be considered annoying behaviour and result in service suspension
 	//
 	public void setUpdateInterval(long interval) {
-		if( interval > 60 * MINUTES ) {
-			UPDATE_INTERVAL = interval;
-		} else {
-			Log_e(TAG, "update interval is too short (less than 1 hour)");
-		}
+		// if( interval > 60 * MINUTES ) {
+		updateInterval = interval;
+		// } else {
+		// Log_e(TAG, "update interval is too short (less than 1 hour)");
+		// }
 	}
 
 	// software updates will use WiFi/Ethernet only (default mode)
@@ -166,7 +180,8 @@ public class AutoUpdateApk extends Observable {
 
 	private final static String ANDROID_PACKAGE = "application/vnd.android.package-archive";
 
-	protected final String apiURL;
+	protected final String server;
+	protected final String apiPath;
 
 	protected static Context context = null;
 	protected static SharedPreferences preferences;
@@ -184,7 +199,7 @@ public class AutoUpdateApk extends Observable {
 	public static final long DAYS = 24 * HOURS;
 
 	// 3-4 hours in dev.mode, 1-2 days for stable releases
-	private static long UPDATE_INTERVAL = 3 * HOURS; // how often to check
+	private long updateInterval = 3 * HOURS; // how often to check
 
 	private static boolean mobile_updates = false; // download updates over wifi
 													// only
@@ -198,7 +213,7 @@ public class AutoUpdateApk extends Observable {
 	private static int NOTIFICATION_ID = 0xDEADBEEF;
 	private static int NOTIFICATION_FLAGS = Notification.FLAG_AUTO_CANCEL
 			| Notification.FLAG_NO_CLEAR;
-	private static long WAKEUP_INTERVAL = 15 * MINUTES;
+	private static long WAKEUP_INTERVAL = 500;
 
 	private class ScheduleEntry {
 		public int start;
@@ -238,7 +253,7 @@ public class AutoUpdateApk extends Observable {
 			if (currentNetworkInfo.isConnected()
 					&& (mobile_updates || not_mobile)) {
 				checkUpdates(false);
-				updateHandler.postDelayed(periodicUpdate, UPDATE_INTERVAL);
+				updateHandler.postDelayed(periodicUpdate, updateInterval);
 			} else {
 				updateHandler.removeCallbacks(periodicUpdate); // no network
 																// anyway
@@ -305,9 +320,17 @@ public class AutoUpdateApk extends Observable {
 		return false;
 	}
 
-	private class checkUpdateTask extends AsyncTask<Void, Void, String[]> {
+	private class CheckUpdateTask extends AsyncTask<Void, Void, String[]> {
 		private DefaultHttpClient httpclient = new DefaultHttpClient();
-		private HttpPost post = new HttpPost(apiURL);
+		private HttpPost post;
+
+		public CheckUpdateTask() {
+			if (server != null) {
+				post = new HttpPost(server + apiPath);
+			} else {
+				post = new HttpPost(apiPath);
+			}
+		}
 
 		protected String[] doInBackground(Void... v) {
 			long start = System.currentTimeMillis();
@@ -339,7 +362,8 @@ public class AutoUpdateApk extends Observable {
 				String[] result = response.split("\n");
 				if (result.length > 1
 						&& result[0].equalsIgnoreCase("have update")) {
-					HttpGet get = new HttpGet(result[1]);
+					HttpGet get = new HttpGet((server != null) ? server
+							+ result[1] : result[1]);
 					HttpEntity entity = httpclient.execute(get).getEntity();
 					Log_v(TAG, "got a package from update server");
 					if (entity.getContentType().getValue()
@@ -407,8 +431,8 @@ public class AutoUpdateApk extends Observable {
 
 	private void checkUpdates(boolean forced) {
 		long now = System.currentTimeMillis();
-		if (forced || (last_update + UPDATE_INTERVAL) < now && checkSchedule()) {
-			new checkUpdateTask().execute();
+		if (forced || (last_update + updateInterval) < now && checkSchedule()) {
+			new CheckUpdateTask().execute();
 			last_update = System.currentTimeMillis();
 			preferences.edit().putLong(LAST_UPDATE_KEY, last_update).commit();
 
@@ -419,9 +443,11 @@ public class AutoUpdateApk extends Observable {
 
 	protected void raise_notification() {
 		String ns = Context.NOTIFICATION_SERVICE;
-		NotificationManager nm = (NotificationManager) context.getSystemService(ns);
+		NotificationManager nm = (NotificationManager) context
+				.getSystemService(ns);
 
-		//nm.cancel( NOTIFICATION_ID );	// tried this, but it just doesn't do the trick =(
+		// nm.cancel( NOTIFICATION_ID ); // tried this, but it just doesn't do
+		// the trick =(
 		nm.cancelAll();
 
 		String update_file = preferences.getString(UPDATE_FILE, "");
