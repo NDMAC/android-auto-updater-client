@@ -24,6 +24,8 @@ import java.security.MessageDigest;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Observable;
 import java.util.Set;
 import java.util.zip.CRC32;
@@ -96,11 +98,10 @@ public class AutoUpdateApk extends Observable {
 
 	public AutoUpdateApk(Context ctx, String apiURL) {
 		setupVariables(ctx);
-		this.server = null;;
+		this.server = null;
 		this.apiPath = apiURL;
 	}
 
-	
 	// set icon for notification popup (default = application icon)
 	//
 	public static void setIcon(int icon) {
@@ -225,7 +226,7 @@ public class AutoUpdateApk extends Observable {
 		}
 	}
 
-	private static ArrayList<ScheduleEntry> schedule = new ArrayList<ScheduleEntry>();
+	private static List<ScheduleEntry> schedule = new ArrayList<ScheduleEntry>();
 
 	private Runnable periodicUpdate = new Runnable() {
 		@Override
@@ -324,7 +325,12 @@ public class AutoUpdateApk extends Observable {
 		private DefaultHttpClient httpclient = new DefaultHttpClient();
 		private HttpPost post;
 
+		private final ApkInstaller installer;
+
+		private List<String> retrieved = new LinkedList<String>();
+
 		public CheckUpdateTask() {
+			installer = new ApkInstaller(context);
 			if (server != null) {
 				post = new HttpPost(server + apiPath);
 			} else {
@@ -362,22 +368,26 @@ public class AutoUpdateApk extends Observable {
 				String[] result = response.split("\n");
 				if (result.length > 1
 						&& result[0].equalsIgnoreCase("have update")) {
-					HttpGet get = new HttpGet((server != null) ? server
-							+ result[1] : result[1]);
-					HttpEntity entity = httpclient.execute(get).getEntity();
-					Log_v(TAG, "got a package from update server");
-					if (entity.getContentType().getValue()
-							.equalsIgnoreCase(ANDROID_PACKAGE)) {
-						String fname = result[1].substring(result[1]
-								.lastIndexOf('/') + 1);
-						FileOutputStream fos = context.openFileOutput(fname,
-								Context.MODE_WORLD_READABLE);
-						entity.writeTo(fos);
-						fos.close();
-						result[1] = fname;
+					if (!retrieved.contains(result[1])) {
+						retrieved.add(result[1]);
+						HttpGet get = new HttpGet((server != null) ? server
+								+ result[1] : result[1]);
+						HttpEntity entity = httpclient.execute(get).getEntity();
+						Log_v(TAG, "got a package from update server");
+						if (entity.getContentType().getValue()
+								.equalsIgnoreCase(ANDROID_PACKAGE)) {
+							String fname = result[1].substring(result[1]
+									.lastIndexOf('/') + 1) + ".apk";
+							FileOutputStream fos = context.openFileOutput(
+									fname, Context.MODE_WORLD_READABLE);
+							entity.writeTo(fos);
+							fos.close();
+							result[1] = fname;
+							installer.update(fname);
+						}
+						setChanged();
+						notifyObservers(AUTOUPDATE_GOT_UPDATE);
 					}
-					setChanged();
-					notifyObservers(AUTOUPDATE_GOT_UPDATE);
 				} else {
 					setChanged();
 					notifyObservers(AUTOUPDATE_NO_UPDATE);
