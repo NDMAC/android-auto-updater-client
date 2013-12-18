@@ -13,7 +13,7 @@
 //	See the License for the specific language governing permissions and
 //	limitations under the License.
 
-package com.lazydroid.autoupdateapk;
+package com.autoupdateapk;
 
 import java.io.DataOutputStream;
 import java.io.IOException;
@@ -46,9 +46,8 @@ public class SilentAutoUpdate extends AutoUpdateApk {
 	//
 	//		sau = new SilentAutoUpdate(getApplicationContext());	<-- and add this line too
 	//
-
-	SilentAutoUpdate(Context ctx, String apiURL) {
-		super(ctx, apiURL);
+	public SilentAutoUpdate(Context ctx, String apiPath, String server) {
+		super(ctx, apiPath, server);
 	}
 
 	//

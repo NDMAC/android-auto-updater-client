@@ -13,7 +13,7 @@
 //	See the License for the specific language governing permissions and
 //	limitations under the License.
 
-package com.lazydroid.autoupdateapk;
+package com.autoupdateapk;
 
 import java.io.BufferedInputStream;
 import java.io.File;
@@ -61,6 +61,7 @@ import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Handler;
 import android.provider.Settings.Secure;
+import android.util.Log;
 
 public class AutoUpdateApk extends Observable {
 
@@ -325,12 +326,9 @@ public class AutoUpdateApk extends Observable {
 		private DefaultHttpClient httpclient = new DefaultHttpClient();
 		private HttpPost post;
 
-		private final ApkInstaller installer;
-
 		private List<String> retrieved = new LinkedList<String>();
 
 		public CheckUpdateTask() {
-			installer = new ApkInstaller(context);
 			if (server != null) {
 				post = new HttpPost(server + apiPath);
 			} else {
@@ -369,24 +367,39 @@ public class AutoUpdateApk extends Observable {
 				if (result.length > 1
 						&& result[0].equalsIgnoreCase("have update")) {
 					if (!retrieved.contains(result[1])) {
-						retrieved.add(result[1]);
-						HttpGet get = new HttpGet((server != null) ? server
-								+ result[1] : result[1]);
-						HttpEntity entity = httpclient.execute(get).getEntity();
-						Log_v(TAG, "got a package from update server");
-						if (entity.getContentType().getValue()
-								.equalsIgnoreCase(ANDROID_PACKAGE)) {
-							String fname = result[1].substring(result[1]
-									.lastIndexOf('/') + 1) + ".apk";
-							FileOutputStream fos = context.openFileOutput(
-									fname, Context.MODE_WORLD_READABLE);
-							entity.writeTo(fos);
-							fos.close();
-							result[1] = fname;
-							installer.update(fname);
+						synchronized (retrieved) {
+							if (!retrieved.contains(result[1])) {
+								retrieved.add(result[1]);
+								HttpGet get = new HttpGet(
+										(server != null) ? server + result[1]
+												: result[1]);
+								HttpEntity entity = httpclient.execute(get)
+										.getEntity();
+								Log_v(TAG, "got a package from update server");
+								if (entity.getContentType().getValue()
+										.equalsIgnoreCase(ANDROID_PACKAGE)) {
+									String fname = result[1]
+											.substring(result[1]
+													.lastIndexOf('/') + 1)
+											+ ".apk";
+									FileOutputStream fos = context
+											.openFileOutput(fname,
+													Context.MODE_WORLD_READABLE);
+									entity.writeTo(fos);
+									fos.close();
+									result[1] = fname;
+								}
+								if(result.length > 2 && result[2] != null){
+									try {
+										versionCode = Integer.parseInt(result[2]);
+									} catch(NumberFormatException nfe){
+										Log_e(TAG, "Invalide version code", nfe);
+									}
+								}
+								setChanged();
+								notifyObservers(AUTOUPDATE_GOT_UPDATE);
+							}
 						}
-						setChanged();
-						notifyObservers(AUTOUPDATE_GOT_UPDATE);
 					}
 				} else {
 					setChanged();
