@@ -18,7 +18,7 @@ package com.autoupdateapk;
 import java.util.Observable;
 import java.util.Observer;
 
-import com.lazydroid.autoupdateapk.R;
+import com.autoupdateapk.R;
 
 import android.app.Activity;
 import android.os.Bundle;
