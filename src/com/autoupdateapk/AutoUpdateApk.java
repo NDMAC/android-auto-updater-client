@@ -122,14 +122,15 @@ public class AutoUpdateApk extends Observable {
 		NOTIFICATION_FLAGS = flags;
 	}
 
-	// set update interval (in milliseconds)
-	//
-	// there are nice constants in this file: MINUTES, HOURS, DAYS
-	// you may use them to specify update interval like: 5 * DAYS
-	//
-	// please, don't specify update interval below 1 hour, this might
-	// be considered annoying behaviour and result in service suspension
-	//
+	/** 
+	  set update interval (in milliseconds).
+	
+	  there are nice constants in this file: MINUTES, HOURS, DAYS
+	  you may use them to specify update interval like: 5 * DAYS
+	
+	  please, don't specify update interval below 1 hour, this might
+	  be considered annoying behaviour and result in service suspension
+	*/
 	public void setUpdateInterval(long interval) {
 		// if( interval > 60 * MINUTES ) {
 		updateInterval = interval;
