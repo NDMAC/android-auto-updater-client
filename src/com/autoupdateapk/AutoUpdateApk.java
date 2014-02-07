@@ -122,15 +122,15 @@ public class AutoUpdateApk extends Observable {
 		NOTIFICATION_FLAGS = flags;
 	}
 
-	/** 
-	  set update interval (in milliseconds).
-	
-	  there are nice constants in this file: MINUTES, HOURS, DAYS
-	  you may use them to specify update interval like: 5 * DAYS
-	
-	  please, don't specify update interval below 1 hour, this might
-	  be considered annoying behaviour and result in service suspension
-	*/
+	/**
+	 * set update interval (in milliseconds).
+	 * 
+	 * there are nice constants in this file: MINUTES, HOURS, DAYS you may use
+	 * them to specify update interval like: 5 * DAYS
+	 * 
+	 * please, don't specify update interval below 1 hour, this might be
+	 * considered annoying behaviour and result in service suspension
+	 */
 	public void setUpdateInterval(long interval) {
 		// if( interval > 60 * MINUTES ) {
 		updateInterval = interval;
@@ -390,10 +390,11 @@ public class AutoUpdateApk extends Observable {
 									fos.close();
 									result[1] = fname;
 								}
-								if(result.length > 2 && result[2] != null){
+								if (result.length > 2 && result[2] != null) {
 									try {
-										versionCode = Integer.parseInt(result[2]);
-									} catch(NumberFormatException nfe){
+										versionCode = Integer
+												.parseInt(result[2]);
+									} catch (NumberFormatException nfe) {
 										Log_e(TAG, "Invalide version code", nfe);
 									}
 								}
@@ -546,6 +547,7 @@ public class AutoUpdateApk extends Observable {
 		} catch (NameNotFoundException e) {
 			Log_e(TAG, e.getMessage());
 		}
+
 		if (packageInfo.requestedPermissions != null) {
 			for (String p : packageInfo.requestedPermissions) {
 				// Log_v(TAG, "permission: " + p.toString());
