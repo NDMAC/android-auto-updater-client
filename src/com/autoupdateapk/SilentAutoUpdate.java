@@ -35,6 +35,9 @@ import android.content.pm.PackageManager.NameNotFoundException;
 
 public class SilentAutoUpdate extends AutoUpdateApk {
 
+	/** If silent install fails, a manual pop-up is provided. */
+	private boolean manualFallback = true;
+	
 	// this class is supposed to be instantiated in any of your activities or,
 	// better yet, in Application subclass. Something along the lines of:
 	//
@@ -64,6 +67,11 @@ public class SilentAutoUpdate extends AutoUpdateApk {
 			};
 			execute_as_root(commands);	// not supposed to return if successful
 			preferences.edit().putBoolean(SILENT_FAILED, true).commit();	// avoid silent update loop
+			
+			// if silent install fails manual pop-up is used
+			if(manualFallback){
+			  super.raise_notification();
+			}
 		}
 		super.raise_notification();
 	}

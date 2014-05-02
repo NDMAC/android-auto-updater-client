@@ -410,13 +410,10 @@ public class AutoUpdateApk extends Observable {
 				}
 				return result;
 			} catch (ParseException e) {
-				// e.printStackTrace();
 				Log_e(TAG, e.getMessage());
 			} catch (ClientProtocolException e) {
-				// e.printStackTrace();
 				Log_e(TAG, e.getMessage());
 			} catch (IOException e) {
-				// e.printStackTrace();
 				Log_e(TAG, e.getMessage());
 			} finally {
 				httpclient.getConnectionManager().shutdown();
@@ -616,6 +613,9 @@ public class AutoUpdateApk extends Observable {
 	}
 
 	protected void log(String level, String tag, String message, Throwable e) {
+		if (message == null) {
+			return;
+		}
 		if (level.equalsIgnoreCase("v")) {
 			if (e == null)
 				android.util.Log.v(tag, message);
