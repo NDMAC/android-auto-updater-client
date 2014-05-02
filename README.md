@@ -10,6 +10,17 @@ Fork of [lenik.terenin](https://code.google.com/u/lenik.terenin/)'s auto-update 
 
 ## HOW TO
 
+#### Requirements
+
+Since you don't put your software on Android Market, you have to enable "Unknown Sources (Allow installation of non-Market applications)" in Settings :: Applications. Otherwise you won't be able to install your software or updates.
+
+#### Permissions
+The following permissions are needed in Android Manifest:
+
+ * android:name="android.permission.INTERNET"
+ * android:name="android.permission.ACCESS_NETWORK_STATE"
+ * android:name="android.permission.ACCESS_WIFI_STATE"
+
 ### Start updater client
 
 The updater client typically starts during application initialization, simply by creating a new instance.
